@@ -1,8 +1,11 @@
 //Audify audio : https://almoghamdani.github.io/audify/index.html
 const WebSocket = require('ws')
 
+// Get audio port from environment variable or use default
+const audioPort = process.env.AUDIO_PORT || 50160;
+
 var wss = new WebSocket.Server({
-    port: 56780
+    port: audioPort
 });
 
 console.log('Server ready...')
