@@ -1,6 +1,6 @@
-FROM alpine:3.16
+FROM alpine:latest
 
-LABEL maintainer="Don <novaspirit@novaspirit.com>"
+LABEL maintainer="Wishmasterflo"
 
 RUN apk add --no-cache sudo git xfce4 faenza-icon-theme bash python3 tigervnc xfce4-terminal firefox cmake wget \
     pulseaudio xfce4-pulseaudio-plugin pavucontrol pulseaudio-alsa alsa-plugins-pulse alsa-lib-dev nodejs npm \
@@ -8,13 +8,18 @@ RUN apk add --no-cache sudo git xfce4 faenza-icon-theme bash python3 tigervnc xf
     && adduser -h /home/alpine -s /bin/bash -S -D alpine && echo -e "alpine\nalpine" | passwd alpine \
     && echo 'alpine ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers \
     && git clone https://github.com/novnc/noVNC /opt/noVNC \
-    && git clone https://github.com/novnc/websockify /opt/noVNC/utils/websockify \
-    && wget https://raw.githubusercontent.com/novaspirit/Alpine_xfce4_noVNC/dev/script.js -O /opt/noVNC/script.js \
-    && wget https://raw.githubusercontent.com/novaspirit/Alpine_xfce4_noVNC/dev/audify.js -O /opt/noVNC/audify.js \
-    && wget https://raw.githubusercontent.com/novaspirit/Alpine_xfce4_noVNC/dev/vnc.html -O /opt/noVNC/vnc.html \
-    && wget https://raw.githubusercontent.com/novaspirit/Alpine_xfce4_noVNC/dev/pcm-player.js -O /opt/noVNC/pcm-player.js
+    && git clone https://github.com/novnc/websockify /opt/noVNC/utils/websockify
 
+# Copy local files instead of downloading from remote
+COPY script.js /opt/noVNC/script.js
+COPY audify.js /opt/noVNC/audify.js
+COPY vnc.html /opt/noVNC/vnc.html
+COPY pcm-player.js /opt/noVNC/pcm-player.js
 
+# Environment variables for ports
+ENV NOVNC_PORT=6080
+ENV AUDIO_PORT=50160
+ENV VNC_PORT=5999
 
 RUN npm install --prefix /opt/noVNC ws
 RUN npm install --prefix /opt/noVNC audify
@@ -35,8 +40,8 @@ RUN echo '\
 sleep 1 & \
 /usr/bin/pulseaudio 2>&1 | sed  "s/^/[pulseaudio] /" & \
 sleep 1 & \
-/usr/bin/node /opt/noVNC/audify.js 2>&1 | sed "s/^/[audify    ] /" & \
-/opt/noVNC/utils/novnc_proxy --vnc localhost:5999 2>&1 | sed "s/^/[noVNC     ] /"'\
+AUDIO_PORT=${AUDIO_PORT} /usr/bin/node /opt/noVNC/audify.js 2>&1 | sed "s/^/[audify    ] /" & \
+/opt/noVNC/utils/novnc_proxy --listen 0.0.0.0:${NOVNC_PORT} --vnc localhost:${VNC_PORT} 2>&1 | sed "s/^/[noVNC     ] /"'\
 >/entry.sh
 
 USER alpine
