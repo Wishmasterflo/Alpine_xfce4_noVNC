@@ -4,6 +4,12 @@ Simple and minimal Alpine Docker Image providing XFCE4 through html5 noVNC conne
 
 Step by step tutorial on how this docker is created (https://www.youtube.com/watch?v=8IfTXJRAIJw)
 
+<div align="center">
+ 
+![preview](preview.png?raw=true "preview")
+
+</div>
+
 #### Updates
 
 v0.1.2 removed password requirement for noVNC
